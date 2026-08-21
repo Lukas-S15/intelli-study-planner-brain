@@ -1,4 +1,4 @@
-# ECON251 — Industry and Trade in Asia
+# ECON251 â€” Industry and Trade in Asia
 
 - **Credit Points:** 6
 - **Pre-Requisite:** Any 48 credit points

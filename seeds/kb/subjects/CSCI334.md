@@ -1,4 +1,4 @@
-# CSCI334 — Software Design
+# CSCI334 â€” Software Design
 
 - **Credit Points:** 6
 - **Pre-Requisite:** CSIT121 and CSIT214

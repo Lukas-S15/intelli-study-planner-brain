@@ -1,4 +1,4 @@
-# CSIT328 — Web Security
+# CSIT328 â€” Web Security
 
 - **Credit Points:** 6
 - **Co-Requisite:** 12 credit points at 200 level

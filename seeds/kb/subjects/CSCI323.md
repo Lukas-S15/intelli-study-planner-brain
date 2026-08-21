@@ -1,4 +1,4 @@
-# CSCI323 — Modern Artificial Intelligence
+# CSCI323 â€” Modern Artificial Intelligence
 
 - **Credit Points:** 6
 - **Pre-Requisite:** (CSIT111 or CSIT110) and 12 credit points of 200-level CSCI/CSIT subjects

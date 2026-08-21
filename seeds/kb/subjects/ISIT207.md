@@ -1,4 +1,4 @@
-# ISIT207 — Frontend Web Programming
+# ISIT207 â€” Frontend Web Programming
 
 - **Credit Points:** 6
 - **Pre-Requisite:** (CSIT111 or CSIT110) and CSIT128

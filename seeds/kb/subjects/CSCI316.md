@@ -1,4 +1,4 @@
-# CSCI316 — Big Data Mining Techniques and Implementation
+# CSCI316 â€” Big Data Mining Techniques and Implementation
 
 - **Credit Points:** 6
 - **Pre-Requisite:** CSCI203

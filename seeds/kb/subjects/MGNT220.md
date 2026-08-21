@@ -1,4 +1,4 @@
-# MGNT220 — Understanding Organisations
+# MGNT220 â€” Understanding Organisations
 
 - **Credit Points:** 6
 - **Availability:**

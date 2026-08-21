@@ -1,4 +1,4 @@
-# MGNT110 — Introduction to Management
+# MGNT110 â€” Introduction to Management
 
 - **Credit Points:** 6
 - **Availability:**

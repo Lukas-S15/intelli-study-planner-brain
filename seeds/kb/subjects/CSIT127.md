@@ -1,4 +1,4 @@
-# CSIT127 — Networks and Communications
+# CSIT127 â€” Networks and Communications
 
 - **Credit Points:** 6
 - **Availability:**

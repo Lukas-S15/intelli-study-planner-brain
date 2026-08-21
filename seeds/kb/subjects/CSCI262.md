@@ -1,4 +1,4 @@
-# CSCI262 — System Security
+# CSCI262 â€” System Security
 
 - **Credit Points:** 6
 - **Pre-Requisite:** CSIT121 and CSIT115 and CSIT127

@@ -1,4 +1,4 @@
-# MATH223 — Mathematics for Information Technology
+# MATH223 â€” Mathematics for Information Technology
 
 - **Credit Points:** 6
 - **Handbook URL:** https://courses.uow.edu.au/subjects/2026/MATH223

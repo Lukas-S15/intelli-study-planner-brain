@@ -1,4 +1,4 @@
-# CSCI369 — Ethical Hacking
+# CSCI369 â€” Ethical Hacking
 
 - **Credit Points:** 6
 - **Pre-Requisite:** (CSIT110 or CSIT111) and 18 credit points at 200 level

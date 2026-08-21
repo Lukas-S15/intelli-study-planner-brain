@@ -1,4 +1,4 @@
-# ISIT204 — Principles of eBusiness
+# ISIT204 â€” Principles of eBusiness
 
 - **Credit Points:** 6
 - **Pre-Requisite:** 24cp @100 level

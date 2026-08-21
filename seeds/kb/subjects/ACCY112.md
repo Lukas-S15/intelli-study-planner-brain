@@ -1,4 +1,4 @@
-# ACCY112 — Accounting In Organisations
+# ACCY112 â€” Accounting In Organisations
 
 - **Credit Points:** 6
 - **Pre-Requisite:** ACCY111

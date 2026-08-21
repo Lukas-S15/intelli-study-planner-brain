@@ -1,4 +1,4 @@
-# CSIT302 — Cybersecurity
+# CSIT302 â€” Cybersecurity
 
 - **Credit Points:** 6
 - **Pre-Requisite:** CSIT127 and 12cp at 100-level of CSIT

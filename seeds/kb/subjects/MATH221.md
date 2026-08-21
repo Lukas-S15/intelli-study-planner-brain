@@ -1,4 +1,4 @@
-# MATH221 — Mathematics for Computer Science
+# MATH221 â€” Mathematics for Computer Science
 
 - **Credit Points:** 6
 - **Handbook URL:** https://courses.uow.edu.au/subjects/2026/MATH221

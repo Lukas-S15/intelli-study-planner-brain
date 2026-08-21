@@ -1,4 +1,4 @@
-# CSIT113 — Problem Solving
+# CSIT113 â€” Problem Solving
 
 - **Credit Points:** 6
 - **Handbook URL:** https://courses.uow.edu.au/subjects/2026/CSIT113
