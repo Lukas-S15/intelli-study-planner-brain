@@ -1,4 +1,4 @@
-# CSIT213 — Java Programming
+# CSIT213 â€” Java Programming
 
 - **Credit Points:** 6
 - **Pre-Requisite:** CSIT110 or CSIT111

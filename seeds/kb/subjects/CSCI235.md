@@ -1,4 +1,4 @@
-# CSCI235 — Database Systems
+# CSCI235 â€” Database Systems
 
 - **Credit Points:** 6
 - **Pre-Requisite:** CSIT115

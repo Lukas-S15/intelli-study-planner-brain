@@ -1,4 +1,4 @@
-# ACCY122 — Accounting Principles
+# ACCY122 â€” Accounting Principles
 
 - **Credit Points:** 6
 - **Availability:**

@@ -1,4 +1,4 @@
-# ACCY121 — Accounting for Decision Making
+# ACCY121 â€” Accounting for Decision Making
 
 - **Credit Points:** 6
 - **Availability:**

@@ -1,4 +1,4 @@
-# MGNT102 — Professional Communication: Concepts and Practices
+# MGNT102 â€” Professional Communication: Concepts and Practices
 
 - **Credit Points:** 6
 - **Availability:**

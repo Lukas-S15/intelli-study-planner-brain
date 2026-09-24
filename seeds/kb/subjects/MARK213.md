@@ -1,4 +1,4 @@
-# MARK213 — Marketing Principles
+# MARK213 â€” Marketing Principles
 
 - **Credit Points:** 6
 - **Availability:**

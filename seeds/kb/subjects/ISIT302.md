@@ -1,4 +1,4 @@
-# ISIT302 — Corporate Network Management
+# ISIT302 â€” Corporate Network Management
 
 - **Credit Points:** 6
 - **Co-Requisite:** 12 credit points at 200 level

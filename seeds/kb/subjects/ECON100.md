@@ -1,4 +1,4 @@
-# ECON100 — Economic Essentials for Business
+# ECON100 â€” Economic Essentials for Business
 
 - **Credit Points:** 6
 - **Availability:**

@@ -1,4 +1,4 @@
-# INFO411 — Data Mining and Knowledge Discovery
+# INFO411 â€” Data Mining and Knowledge Discovery
 
 - **Credit Points:** 6
 - **Pre-Requisite:** 36 cp (Knowledge of mathematical and statistical notation at an introductory level.)

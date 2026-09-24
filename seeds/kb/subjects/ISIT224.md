@@ -1,4 +1,4 @@
-# ISIT224 — Management Information Systems
+# ISIT224 â€” Management Information Systems
 
 - **Credit Points:** 6
 - **Pre-Requisite:** (CSIT113 or CSIT123 or BUS 101) and another 18 credit points at 100 level

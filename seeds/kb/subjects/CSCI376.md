@@ -1,4 +1,4 @@
-# CSCI376 — Multicore and GPU Programming
+# CSCI376 â€” Multicore and GPU Programming
 
 - **Credit Points:** 6
 - **Pre-Requisite:** CSCI251 + 12cp 200 level CSCI

@@ -1,4 +1,4 @@
-# ACCY111 — Accounting Fundamentals In Society
+# ACCY111 â€” Accounting Fundamentals In Society
 
 - **Credit Points:** 6
 - **Availability:**

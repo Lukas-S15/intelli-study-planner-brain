@@ -1,4 +1,4 @@
-# MARK101 — Marketing Principles
+# MARK101 â€” Marketing Principles
 
 - **Credit Points:** 6
 - **Availability:**

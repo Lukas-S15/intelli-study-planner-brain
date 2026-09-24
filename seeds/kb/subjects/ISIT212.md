@@ -1,4 +1,4 @@
-# ISIT212 — Corporate Network  Planning and Design
+# ISIT212 â€” Corporate Network  Planning and Design
 
 - **Credit Points:** 6
 - **Pre-Requisite:** ISIT105 or CSIT127

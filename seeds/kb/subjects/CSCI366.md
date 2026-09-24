@@ -1,4 +1,4 @@
-# CSCI366 — Mobile Multimedia
+# CSCI366 â€” Mobile Multimedia
 
 - **Credit Points:** 6
 - **Pre-Requisite:** CSIT121 + 24cp @ 100 level CSIT

@@ -1,4 +1,4 @@
-# CSIT114 — System Analysis
+# CSIT114 â€” System Analysis
 
 - **Credit Points:** 6
 - **Availability:**

@@ -1,4 +1,4 @@
-# ISIT306 — Strategic eBusiness Solutions
+# ISIT306 â€” Strategic eBusiness Solutions
 
 - **Credit Points:** 6
 - **Pre-Requisite:** 24cp @200 level ISIT OR CSIT

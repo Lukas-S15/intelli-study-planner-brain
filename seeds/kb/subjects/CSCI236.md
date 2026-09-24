@@ -1,4 +1,4 @@
-# CSCI236 — 3D Modelling and Animation
+# CSCI236 â€” 3D Modelling and Animation
 
 - **Credit Points:** 6
 - **Pre-Requisite:** 36 credit points at 100 level

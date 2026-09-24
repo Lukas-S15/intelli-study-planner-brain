@@ -1,4 +1,4 @@
-# MGNT201 — Organisational Behaviour
+# MGNT201 â€” Organisational Behaviour
 
 - **Credit Points:** 6
 - **Availability:**
