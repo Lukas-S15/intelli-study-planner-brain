@@ -97,17 +97,17 @@ def confirm_metadata_tool(
     degree_code: str,
     year: int,
     campus: str,
-    major: str | None = None,
+    majors: list[str] | None = None,
 ) -> str:
-    """Record or switch the student's degree_code, commencement year, campus, and major.
+    """Record or switch the student's degree, commencement year,
+    campus, and explicitly declared majors.
 
-    Call AFTER the student has answered the intake question (or corrected/switched
-    these values) — never guess on their behalf, and never call this before they
-    have replied with the details.
+    Include every explicitly stated major in the original order.
+    Do not infer missing majors. Use an empty list if the student
+    has no major.
 
-    Pass the final values. For major, use the major name and/or MAJ code when
-    known (e.g. "Web Design and Development (MAJ40246)"), or "none" / null if
-    they have no major.
+    Call after the student has answered the intake question or
+    explicitly corrected their details.
 
     On first confirmation: do not call fetch_handbook_tool or attempt any
     audit/planning before this has been called.
@@ -121,7 +121,7 @@ def confirm_metadata_tool(
             "degree_code": degree_code,
             "year": year,
             "campus": campus,
-            "major": major,
+            "major": majors or [],
         }
     )
 
@@ -299,7 +299,7 @@ def request_plan_change_tool(
         "session",
         "general_revision",
     ],
-    major: str | None = None,
+    majors: list[str] | None = None,
     elective_preference: str | None = None,
     course: str | None = None,
     campus: str | None = None,
@@ -315,7 +315,7 @@ def request_plan_change_tool(
     """
     return json.dumps({
         "change_type": change_type,
-        "major": major,
+        "major": majors,
         "elective_preference": elective_preference,
         "course": course,
         "campus": campus,

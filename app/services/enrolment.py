@@ -76,7 +76,7 @@ def _alternation(values: frozenset[str]) -> str:
 
 _COURSE = re.compile(r"^\*{0,2}Course:?\*{0,2}\s*(\d{3,4})\b", re.IGNORECASE)
 _CAMPUS = re.compile(r"^\*{0,2}Campus:?\*{0,2}\s*([A-Za-z][A-Za-z ]*?)\s*(?:\||$)", re.IGNORECASE)
-_MAJOR = re.compile(r"^\*{0,2}(?:(Second)\s+)?Major:?\*{0,2}\s*(.+?)\s*$", re.IGNORECASE)
+_MAJOR = re.compile(r"^\*{0,2}(?:(?:Second)\s+)?Major(?:\s+\d+)?" r"\s*:?\*{0,2}\s*(.*?)\s*$", re.IGNORECASE)
 # "AIBD — Artificial Intelligence and Big Data" -> "AIBD"; a major is a short
 # uppercase code, so "Not yet declared" simply yields nothing.
 _MAJOR_CODE = re.compile(r"^([A-Z]{2,6})\b")
@@ -130,14 +130,17 @@ _FLAT_LABELS = frozenset(
 # A header value runs until the next label, until the column headings, or until
 # the first row.
 _FLAT_END = (
-    rf"(?=\s+(?:(?:{_alternation(_FLAT_LABELS)})\s*:|Year\s+Session\b|(?:19|20)\d{{2}}\s)|\s*$)"
+    rf"(?=\s+(?:(?:{_alternation(_FLAT_LABELS)}|"
+    rf"Major(?:\s+\d+)?|Second\s+Major)\s*:|"
+    rf"Year\s+Session\b|(?:19|20)\d{{2}}\s)|\s*$)"
 )
 _FLAT_COURSE = re.compile(r"\bCourse\s*:\s*(\d{3,4})\b", re.IGNORECASE)
 _FLAT_CAMPUS = re.compile(
     rf"\bCampus\s*:\s*(?P<value>[A-Za-z][A-Za-z ]{{0,40}}?){_FLAT_END}", re.IGNORECASE
 )
 _FLAT_MAJOR = re.compile(
-    rf"\b(?:Second\s+)?Major\s*:\s*(?P<value>[A-Za-z][A-Za-z0-9 &—-]{{0,60}}?){_FLAT_END}",
+    rf"\b(?:Second\s+)?Major(?:\s+\d+)?\s*:\s*"
+    rf"(?P<value>[A-Za-z][A-Za-z0-9 &—-]{{0,60}}?){_FLAT_END}",
     re.IGNORECASE,
 )
 
@@ -272,15 +275,47 @@ def _add_major(header: dict, value: str) -> None:
 
 
 def _read_header_line(line: str, header: dict) -> None:
-    """Pick the three allowlisted header fields out of a non-table line."""
+    """Read allowlisted header fields, including separate-line major values."""
+
+    # If the previous line was an empty major label, read this line as its value.
+    if header.get("_pending_major"):
+        value = line.replace("*", "").strip()
+
+        # Do not mistake another header label for a major name.
+        is_header = (
+            _COURSE.match(line)
+            or _CAMPUS.match(line)
+            or _MAJOR.match(line)
+        )
+
+        if value and not is_header:
+            previous_count = len(header["majors"])
+            _add_major(header, value)
+
+            if len(header["majors"]) > previous_count:
+                header["_pending_major"] = False
+                return
+
+        # If this is another header, clear the pending state and process it
+        # normally instead of accidentally treating the label as a major.
+        header["_pending_major"] = False
+
     if (course := _COURSE.match(line)) and header["course_code"] is None:
         header["course_code"] = course.group(1)
         return
+
     if (campus := _CAMPUS.match(line)) and header["campus"] is None:
         header["campus"] = campus.group(1).strip()
         return
+
     if major := _MAJOR.match(line):
-        _add_major(header, major.group(2).strip())
+        value = major.group(1).strip()
+
+        if value:
+            _add_major(header, value)
+        else:
+            # The major label is present, but its value is on the next line.
+            header["_pending_major"] = True
 
 
 _NO_HISTORY = (
@@ -356,6 +391,7 @@ def _parse_flat(raw_sols: str) -> EnrolmentRecord:
         "course_code": None,
         "campus": None,
         "majors": [],
+        "_pending_major": False,
     }
 
     preamble = text
@@ -412,7 +448,7 @@ def _parse_flat(raw_sols: str) -> EnrolmentRecord:
 
 def _parse_table(raw_sols: str) -> EnrolmentRecord:
     """Parse a paste that still has its markdown tables."""
-    header: dict = {"course_code": None, "campus": None, "majors": []}
+    header: dict = {"course_code": None, "campus": None, "majors": [], "_pending_major": False}
     rows: list[EnrolmentRow] = []
     specified: list[CreditRow] = []
     unspecified: list[CreditRow] = []
@@ -514,4 +550,6 @@ def render_for_llm(record: EnrolmentRecord) -> str:
 
 def project(raw_sols: str) -> str:
     """Parse a SOLS paste and render only its allowlisted fields."""
-    return render_for_llm(parse_enrolment(raw_sols))
+    rendered = (render_for_llm(parse_enrolment(raw_sols)))
+    print(rendered)
+    return rendered
