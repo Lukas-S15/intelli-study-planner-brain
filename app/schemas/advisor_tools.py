@@ -4,15 +4,13 @@ from pydantic import BaseModel
 
 
 class ConfirmedMetadata(BaseModel):
-    """What `confirm_metadata_tool` returns. Only the fields the tool was given
-    are set, and dumped with `exclude_unset`, so omitted fields keep the
-    student's known values downstream. `major` is the legacy single-major alias."""
+    """What `confirm_metadata_tool` returns. `major` is the wire name the
+    sanitiser already reads."""
 
-    degree_code: str | None = None
-    year: int | None = None
-    campus: str | None = None
-    majors: list[str] | None = None
-    major: str | None = None
+    degree_code: str
+    year: int
+    campus: str
+    major: list[str]
 
 
 class PlanChangeRequest(BaseModel):
