@@ -65,7 +65,36 @@ async def start_session(
 ):
     logger.debug("Starting chat (input_type=%s)", body.input_type)
     try:
-        session, reply = await service.start_session(body.message, model=body.model, input_type=body.input_type, context=body.context)
+        session, reply = await service.start_session(
+            body.message, 
+            model=body.model,
+            input_type=body.input_type,
+            context=body.context,
+            elective_mode=(
+                body.context.profile.elective_mode
+                if body.context and body.context.profile
+                else None
+            ),
+            elective_interests=(
+                body.context.profile.elective_interests
+                if body.context and body.context.profile
+                else None
+            )
+        )
+
+        print("BACKEND CONTEXT:", body.context)
+        print(
+            "BACKEND ELECTIVE MODE:",
+            body.context.profile.elective_mode
+            if body.context and body.context.profile
+            else None,
+        )
+        print(
+            "BACKEND ELECTIVE INTERESTS:",
+            body.context.profile.elective_interests
+            if body.context and body.context.profile
+            else None,
+        )
     except (NoCredentialError, CredentialUnreadable) as e:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e)) from e
     except CredentialRejected as e:
@@ -94,7 +123,22 @@ async def continue_session(
     service: AgentChatService = Depends(_get_agent_service),
 ):
     try:
-        reply = await service.continue_session(session_id, body.message, model=body.model, context=body.context)
+        reply = await service.continue_session(
+            session_id, 
+            body.message, 
+            model=body.model,
+            elective_mode=(
+                body.context.profile.elective_mode
+                if body.context and body.context.profile
+                else None
+            ),
+            elective_interests=(
+                body.context.profile.elective_interests
+                if body.context and body.context.profile
+                else None
+            ),
+        )
+
     except (NoCredentialError, CredentialUnreadable) as e:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e)) from e
     except CredentialRejected as e:
@@ -105,14 +149,16 @@ async def continue_session(
         raise HTTPException(status_code=404, detail=str(e)) from e
     except HandbookUnavailable as e:
         raise HTTPException(status_code=503, detail="The course handbook is unavailable. Please try again later.") from e
-    except PlanGenerationError as e:
-        raise HTTPException(status_code=422, detail=str(e)) from e
+    except PlanGenerationError as e: 
+        logger.exception("Plan generation failed with 422") 
+        raise HTTPException( status_code=422, detail=str(e), ) from e
     except InvalidChatContext as e:
         # The message is sanitized by safe_record; never log the raw record.
         logger.warning("Chat enrolment validation failed: %s", e)
         raise HTTPException(status_code=422, detail=str(e)) from e
-    except ValueError as e:
-        raise HTTPException(status_code=422, detail=str(e)) from e
+    except ValueError as e: 
+        logger.exception("Chat request failed with ValueError") 
+        raise HTTPException( status_code=422, detail=str(e), ) from e
     except Exception as e:
         _raise_llm_http_error(e)
     return ContinueSessionOut(session_id=str(session_id), reply=MessageOut.model_validate(reply))
