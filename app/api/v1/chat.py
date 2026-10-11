@@ -68,6 +68,8 @@ async def start_session(
         session, reply = await service.start_session(
             body.message, 
             model=body.model,
+            input_type=body.input_type,
+            context=body.context,
             elective_mode=(
                 body.context.profile.elective_mode
                 if body.context and body.context.profile
@@ -125,8 +127,16 @@ async def continue_session(
             session_id, 
             body.message, 
             model=body.model,
-            elective_mode=body.context.profile.elective_mode if body.context else None,
-            elective_interests=body.context.profile.elective_interests if body.context else None
+            elective_mode=(
+                body.context.profile.elective_mode
+                if body.context and body.context.profile
+                else None
+            ),
+            elective_interests=(
+                body.context.profile.elective_interests
+                if body.context and body.context.profile
+                else None
+            ),
         )
     except (NoCredentialError, CredentialUnreadable) as e:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e)) from e
