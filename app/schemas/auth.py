@@ -1,7 +1,7 @@
 import re
 import uuid
 from datetime import datetime
-from typing import Annotated
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
 
@@ -21,6 +21,7 @@ class ProfileUpdate(BaseModel):
     commencement_year: int | None = Field(default=None, ge=1900, le=2100, strict=True)
     campus: str | None = Field(default=None, min_length=1, max_length=32)
     major: str | None = Field(default=None, min_length=1, max_length=120)
+    elective_mode: Literal["degree", "interest"] | None = None
     elective_interests: list[ProfileText] = Field(default=None, max_length=100)
 
     @field_validator("email")
@@ -87,4 +88,5 @@ class UserOut(BaseModel):
     commencement_year: int | None
     campus: str | None
     major: str | None
+    elective_mode: Literal["degree", "interest"] | None = None
     elective_interests: list[str]
