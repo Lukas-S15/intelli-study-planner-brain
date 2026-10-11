@@ -138,6 +138,7 @@ async def continue_session(
                 else None
             ),
         )
+
     except (NoCredentialError, CredentialUnreadable) as e:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e)) from e
     except CredentialRejected as e:
@@ -148,14 +149,16 @@ async def continue_session(
         raise HTTPException(status_code=404, detail=str(e)) from e
     except HandbookUnavailable as e:
         raise HTTPException(status_code=503, detail="The course handbook is unavailable. Please try again later.") from e
-    except PlanGenerationError as e:
-        raise HTTPException(status_code=422, detail=str(e)) from e
+    except PlanGenerationError as e: 
+        logger.exception("Plan generation failed with 422") 
+        raise HTTPException( status_code=422, detail=str(e), ) from e
     except InvalidChatContext as e:
         # The message is sanitized by safe_record; never log the raw record.
         logger.warning("Chat enrolment validation failed: %s", e)
         raise HTTPException(status_code=422, detail=str(e)) from e
-    except ValueError as e:
-        raise HTTPException(status_code=422, detail=str(e)) from e
+    except ValueError as e: 
+        logger.exception("Chat request failed with ValueError") 
+        raise HTTPException( status_code=422, detail=str(e), ) from e
     except Exception as e:
         _raise_llm_http_error(e)
     return ContinueSessionOut(session_id=str(session_id), reply=MessageOut.model_validate(reply))

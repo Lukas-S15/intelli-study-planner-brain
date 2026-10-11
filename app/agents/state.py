@@ -275,6 +275,8 @@ def stage1_electives_from_advisor_state(
 class AdvisorState(TypedDict):
     messages: Annotated[list[BaseMessage], add_messages]
     raw_sols: str | None
+    sols_prompted: bool
+    no_enrolment_history: bool
 
     # Metadata
     meta: StudentMeta | None
@@ -611,121 +613,129 @@ def _extract_explicit_major_hint(
     return None
 
 
+
 def sanitize_confirmed_metadata(
-    prior_meta: StudentMeta | None,
-    candidate_meta: StudentMeta,
-    state: "AdvisorState",
+    prior_meta,
+    candidate_meta,
+    state,
 ) -> StudentMeta:
-    """
-    Prevent the confirmation LLM from creating metadata that the
-    student did not actually state.
-
-    Existing parsed metadata may be preserved. New values must be
-    explicitly present in student-authored text.
-
-    Major handling is intentionally special:
-      - exact student wording is accepted;
-      - a canonicalized major not present in student text is rejected;
-      - a conservative raw major hint may be retained;
-      - no handbook-derived major name is invented.
-    """
-
     prior = dict(prior_meta or {})
     candidate = dict(candidate_meta or {})
     student_text = _student_conversation_text(state)
 
     sanitized = dict(prior)
 
-    for field in (
-        "degree_code",
-        "year",
-        "campus",
-        "session",
-        "elective_limit",
-        "interests",
-    ):
+    # Only accept degree metadata if it was previously confirmed
+    # or explicitly stated by the student.
+    for field in ("degree_code", "year", "campus", "session"):
         value = candidate.get(field)
 
         if value in (None, ""):
             continue
 
-        if field in {
-            "degree_code",
-            "year",
-            "campus",
-            "session",
-        }:
-            if (
-                field in prior
-                and str(prior.get(field)).strip() == str(value).strip()
-            ):
-                sanitized[field] = value
+        prior_value = prior.get(field)
 
-            elif _value_explicitly_stated_by_student(
-                value,
-                student_text,
-            ):
-                sanitized[field] = value
-
-            else:
-                print(
-                    "CONFIRMATION DROPPED NON-EXPLICIT",
-                    field,
-                    repr(value),
-                )
+        if (
+            prior_value not in (None, "")
+            and str(prior_value).strip() == str(value).strip()
+        ):
+            sanitized[field] = value
+        elif _value_explicitly_stated_by_student(value, student_text):
+            sanitized[field] = value
         else:
+            print(
+                "CONFIRMATION DROPPED NON-EXPLICIT",
+                field,
+                repr(value),
+            )
+
+    # Elective preferences are not degree metadata, so preserve
+    # candidate values when provided.
+    for field in ("elective_limit", "interests"):
+        value = candidate.get(field)
+        if value not in (None, ""):
             sanitized[field] = value
 
-    if isinstance(candidate.get("major"), str) and _value_explicitly_stated_by_student(
-        candidate["major"], student_text
-    ):
-        sanitized["major"] = candidate["major"]
+    # Normalize prior majors to a list, supporting older records
+    # that stored only the singular "major" field.
+    prior_majors = prior.get("majors")
 
+    if prior_majors is None:
+        prior_majors = (
+            [prior["major"]]
+            if prior.get("major")
+            else []
+        )
+    elif isinstance(prior_majors, str):
+        prior_majors = [prior_majors]
+
+    prior_majors = [
+        str(major).strip()
+        for major in prior_majors
+        if major and str(major).strip()
+    ]
+
+    # Normalize candidate majors from either schema.
     candidate_majors = candidate.get("majors")
 
-    # Backward compatibility with the old singular field.
-    if candidate_majors is None and candidate.get("major"):
-        candidate_majors = [candidate["major"]]
-
-    if isinstance(candidate_majors, str):
+    if candidate_majors is None:
+        candidate_majors = (
+            [candidate["major"]]
+            if candidate.get("major")
+            else []
+        )
+    elif isinstance(candidate_majors, str):
         candidate_majors = [candidate_majors]
 
-    if candidate_majors:
-        sanitized_majors = []
+    accepted_majors = []
 
-        for candidate_major in candidate_majors:
-            if not candidate_major:
-                continue
+    for candidate_major in candidate_majors:
+        if not candidate_major:
+            continue
 
-            candidate_major = str(candidate_major).strip()
+        major = str(candidate_major).strip()
 
-            if _value_explicitly_stated_by_student(
-                candidate_major,
-                student_text,
-            ):
-                sanitized_majors.append(candidate_major)
-            elif any(
-                candidate_major.casefold() == str(prior_major).strip().casefold()
-                for prior_major in (prior.get("majors") or [])
-            ):
-                sanitized_majors.append(candidate_major)
-            else:
-                print(
-                    "CONFIRMATION DROPPED UNVERIFIED MAJOR:",
-                    repr(candidate_major),
-                )
+        if not major:
+            continue
 
-        if sanitized_majors:
-            sanitized["majors"] = list(dict.fromkeys(sanitized_majors))
-            if "majors" in candidate:
-                sanitized.pop("major", None)
+        # A previously confirmed major remains valid even when
+        # it is not repeated in the latest student message.
+        previously_confirmed = any(
+            major.casefold() == prior_major.casefold()
+            for prior_major in prior_majors
+        )
+
+        explicitly_stated = _value_explicitly_stated_by_student(
+            major,
+            student_text,
+        )
+
+        if previously_confirmed or explicitly_stated:
+            accepted_majors.append(major)
         else:
-            # Do not erase previously confirmed majors merely because
-            # the confirmation response omitted or changed them.
-            if prior.get("majors"):
-                sanitized["majors"] = prior["majors"]
-            else:
-                sanitized.pop("majors", None)
+            print(
+                "CONFIRMATION DROPPED UNVERIFIED MAJOR:",
+                repr(major),
+            )
+
+    # Keep prior confirmed majors if the candidate omitted them
+    # or supplied only unverified replacements.
+    if not accepted_majors:
+        accepted_majors = prior_majors
+
+    # Remove duplicates while preserving order.
+    accepted_majors = list(
+        dict.fromkeys(major for major in accepted_majors if major)
+    )
+
+    if accepted_majors:
+        sanitized["majors"] = accepted_majors
+
+        # Keep the plural field as the canonical representation.
+        sanitized.pop("major", None)
+    else:
+        sanitized.pop("majors", None)
+        sanitized.pop("major", None)
 
     return sanitized
 
@@ -824,6 +834,10 @@ def apply_confirm_metadata(
             "handbook_campus": None,
             "handbook_valid": False,
         })
+
+    print("CONFIRMED META:", dict(new_meta))
+    print("CONFIRMED MAJOR:", repr(new_meta.get("major")))
+    print("CONFIRMED MAJORS:", repr(new_meta.get("majors")))
 
     return updates
 

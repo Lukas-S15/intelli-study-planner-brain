@@ -45,6 +45,7 @@ class Stage2Nodes:
         # A fully enrolled degree needs no speculative future subjects. Validate
         # that fact against every rule instead of asking a provider to echo it.
         try:
+            print("ERROR: stage2.py validate_plan error: ", state.get("plan"))
             validate_plan(merge_record_history('{"plan":[]}', state), state)
         except PlanGenerationError:
             pass
@@ -156,9 +157,14 @@ class Stage2Nodes:
         plan = state.get("plan")
 
         if not plan:
-            return {"plan_feedback": "No plan was generated.", "stage2_retry_count": retries + 1}
+            feedback = "No study plan was generated."
+            return {
+                "plan_feedback": feedback,
+                "stage2_retry_count": retries + 1,
+            }
 
         try:
+            print("ERROR: stage2.py validate_plan error in evaluate: ", state.get("plan"))
             structured = validate_plan(merge_record_history(plan, state), state)
             return {"plan": render_plan(structured), "plan_feedback": None, "stage2_retry_count": 0}
         except PlanGenerationError as exc:
@@ -208,22 +214,45 @@ class Stage2Nodes:
 
     @staticmethod
     async def format_output(state: AdvisorState) -> dict:
-        """Publish only the complete plan that passed deterministic validation."""
         print("NODE: format_output")
 
-        if state.get("plan_feedback") or not state.get("plan"):
-            raise PlanGenerationError(
-                "Could not generate a verified complete plan. "
-                + str(state.get("plan_feedback") or "Confirm the required academic information and retry.")
+        structured = state.get("plan")
+        feedback = state.get("plan_feedback")
+
+        if not structured:
+            output = (
+                "**Plan generation warning:** "
+                + str(feedback or "No study plan was generated.")
             )
-        # Revalidate even recovered checkpoints; a formatted draft is not proof of validity.
-        plan = render_plan(validate_plan(state["plan"], state))
-        last_ai = next((m for m in reversed(state.get("messages", [])) if isinstance(m, AIMessage)), None)
-        metadata = dict(last_ai.response_metadata) if last_ai else {}
+            return {
+                "messages": [AIMessage(content=output)],
+                "planning_requested": False,
+                "conversation_mode": "post_plan",
+            }
+
+        try:
+            validated = validate_plan(structured, state)
+            plan = render_plan(validated)
+        except PlanGenerationError as exc:
+            # Keep the original plan visible if final validation fails.
+            plan = (
+                render_plan(structured)
+                if isinstance(structured, dict)
+                else str(structured)
+            )
+            feedback = feedback or str(exc)
+
+        output = plan
+        if feedback:
+            output = (
+                f"{plan.rstrip()}\n\n"
+                "---\n\n"
+                f"**Plan validation warning:** {feedback}"
+            )
 
         return {
-            "plan": plan,
-            "messages": [AIMessage(content=plan, response_metadata=metadata, usage_metadata=last_ai.usage_metadata if last_ai else None)],
+            "plan": structured,
+            "messages": [AIMessage(content=output)],
             "planning_requested": False,
             "conversation_mode": "post_plan",
         }

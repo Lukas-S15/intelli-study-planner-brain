@@ -20,32 +20,31 @@ from app.services.pii import scrub_pii
 from app.services.vault_service import VaultService
 from langchain_core.messages import HumanMessage, SystemMessage
 from sqlalchemy.ext.asyncio import AsyncSession
+from app.agents.nodes.conversation import looks_like_sols_record
 
 
 ElectiveMode = Literal["degree", "interest"]
 
 
-def prepare_first_message(message: str, *, input_type: str = "enrolment") -> tuple[str, bool]:
-    """Route ordinary prose to the LLM; never send a detected raw record unprojected."""
+def prepare_first_message(
+    message: str,
+    *,
+    input_type: Literal["enrolment", "question"] = "question",
+) -> tuple[str, bool]:
     if not message.strip():
         raise ValueError("Enter a message before sending.")
 
-    looks_like_record = bool(
-        re.search(
-            r"(?im)subject\s+code\s+nom(?:inal)?\s+cp|"
-            r"^\s*enrolment history(?:\s*:|[ \t]*$|\s+year\b)|"
-            r"subject\s+code\s*[|\t]|"
-            r"nom(?:inal)?\s+cp\s*[|\t]|"
-            r"^\s*(?:\|?\s*year\s*[|\t]|(?:19|20)\d{2}\s+(?:Autumn|Spring|Summer)\s+)",
-            message,
-        )
-    ) or bool(
-        re.search(r"(?im)^\s*student(?: name| number| id)?\s*:", message)
-        and ("|" in message or "\t" in message)
-    )
+    looks_like_record = looks_like_sols_record(message)
 
-    if input_type == "enrolment" or looks_like_record:
+    if looks_like_record:
         return safe_record(message), True
+
+    if input_type == "enrolment":
+        # Do not silently interpret arbitrary prose as a SOLS record.
+        raise ValueError(
+            "The enrolment submission does not look like a valid SOLS record."
+        )
+
     return scrub_pii(message), False
 
 
@@ -103,7 +102,7 @@ class AgentChatService:
         raw_sols: str,
         *,
         model: str | None = None,
-        input_type: str = "enrolment",
+        input_type: str = "question",
         context: ChatContext | None = None,
         elective_mode: ElectiveMode | None = None,
         elective_interests: list[str] | None = None,
@@ -137,6 +136,8 @@ class AgentChatService:
             "stage2_retry_count": 0,
             "stage2_tool_loop_count": 0,
             "planning_requested": bool(is_record or wants_plan(raw_sols)),
+            "sols_prompted": False,
+            "no_enrolment_history": False,
             "conversation_mode": "collecting",
             "current_stage": None,
         }
@@ -212,7 +213,7 @@ class AgentChatService:
             payload["elective_interests"] = list(elective_interests)
 
         changed_record = payload.get("raw_sols") != state.values.get("raw_sols")
-        if is_record or changed_record or wants_plan(user_message):
+        if is_record or wants_plan(user_message):
             payload["planning_requested"] = True
 
         await self._invoke(graph, llm_config, payload, config)

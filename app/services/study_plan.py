@@ -79,6 +79,11 @@ def plan_sources(state: dict) -> tuple[dict, object, set[str], list[dict]]:
         course = json.loads((SCRAPED_DIR / f"course_{rules.course}.json").read_text())
     except (KeyError, FileNotFoundError, ValueError) as exc:
         raise PlanGenerationError("Course rules are unavailable. Confirm your degree code and campus, then load its handbook.") from exc
+    print("PLAN SOURCES METADATA:")
+    print("meta:", meta)
+    print("meta.major:", repr(meta.get("major")))
+    print("meta.majors:", repr(meta.get("majors")))
+    print("rules.major_core keys:", list(rules.major_core.keys()))
     majors = meta.get("majors")
     if majors is None:
         majors = [meta.get("major")] if meta.get("major") else []
@@ -90,8 +95,15 @@ def plan_sources(state: dict) -> tuple[dict, object, set[str], list[dict]]:
         if code is None:
             raise PlanGenerationError("Confirm a handbook-listed major (or explicitly confirm no major) before generating a plan.")
         required.update(rules.major_core[code])
-    if rules.major_core and not majors:
-        raise PlanGenerationError("Confirm your major before generating a complete degree plan.")
+
+    # Include major-core subjects only when the student has selected a major.
+    for major in majors:
+        code = resolve_major_code(major, rules)
+        if code is None:
+            raise PlanGenerationError(
+                "Confirm a handbook-listed major before generating a plan."
+            )
+        required.update(rules.major_core[code])
     choices = []
 
     def walk(nodes):
